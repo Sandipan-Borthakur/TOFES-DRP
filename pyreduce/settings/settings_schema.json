@@ -695,7 +695,7 @@
                             }
                         },
                         "extraction_cutoff": {
-                            "description": "Number of sigma above the median of the sorounding pixels to curoff the pixel as a bad pixel. Before the main extraction!. Set to 0 to ignore.",
+                            "description": "Number of sigma above the median of the surrounding pixels to curoff the pixel as a bad pixel. Before the main extraction!. Set to 0 to ignore.",
                             "type": "number",
                             "minimum": 0
                         }

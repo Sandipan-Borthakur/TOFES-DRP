@@ -183,6 +183,8 @@ def combine_frames(files, instrument, mode, extension=None, dtype=np.float32,com
             data, _ = instrument.load_fits(fname, mode, dtype=dtype, extension=extension, **kwargs)
             # result += data
             temp_cf.append(data)
+
+        temp_cf = np.array(temp_cf)
         temp_cf = np.ma.median(np.ma.MaskedArray(temp_cf),axis=0)
         result = temp_cf*len(files)
     else:
@@ -201,7 +203,7 @@ def combine_frames(files, instrument, mode, extension=None, dtype=np.float32,com
 
     head.add_history(f'Combined {len(files)} images by simple addition')
 
-    return result, head
+    return np.array(result), head
 
 
 # def combine_frames(
@@ -621,7 +623,7 @@ def combine_calibrate(
         bot, top = np.percentile(orig[orig != 0], (10, 90))
         plt.imshow(orig, vmin=bot, vmax=top, origin="lower")
         if plot != "png":
-            plt.show()
+            plt.show(block=True)
         else:
             plt.savefig("crires_master_flat.png")
 

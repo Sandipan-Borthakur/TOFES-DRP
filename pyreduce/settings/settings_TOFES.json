@@ -1,0 +1,45 @@
+{
+    "__instrument__": "TOFFES",
+    "instrument": {},
+    "orders": {
+        "filter_size": 5,
+        "degree": 4,
+        "degree_before_merge": 2,
+        "noise": 7,
+        "min_cluster": 3000,
+        "min_width": 500,
+        "manual": false
+    },
+    "scatter":{
+        "scatter_degree": 6,
+        "scatter_cutoff": 3,
+        "border_width": 0,
+        "extraction_width": 0.2
+    },
+    "norm_flat": {
+        "oversampling": 8,
+        "swath_width": 400
+    },
+    "wavecal_master": {
+        "extraction_width": 2,
+        "collapse_function": "sum",
+        "bias_scaling": "number_of_files"
+    },
+    "wavecal": {
+        "medium": "vac",
+        "threshold": 200,
+        "shift_window": 0.05,
+        "degree": [5,8],
+        "correlate_cols": 0,
+        "iterations": 5
+    },
+    "science": {
+        "oversampling": 8,
+        "swath_width": 400,
+        "smooth_slitfunction": 0.1,
+        "smooth_spectrum": 1.0E-6,
+        "extraction_width": [2,2],
+        "bias_scaling": "number_of_files",
+        "maxiter": 40
+    }
+}

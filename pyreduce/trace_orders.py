@@ -307,45 +307,107 @@ def fit_polynomials_to_clusters(x, y, clusters, degree, regularization=0):
     orders = {c: fit(x[c], y[c], degree, regularization) for c in clusters}
     return orders
 
+# def plot_orders(im, x, y, clusters, orders, order_range, title=None):
+#     """Plot orders and image"""
+#
+#     cluster_img = np.zeros(im.shape, dtype=im.dtype)
+#     for c in clusters:
+#         cluster_img[x[c], y[c]] = c + 1
+#     cluster_img = np.ma.masked_array(cluster_img, mask=cluster_img == 0)
+#
+#     plt.subplot(121)
+#     bot, top = np.percentile(im, (1, 99))
+#     plt.imshow(im, origin="lower", vmin=bot, vmax=top)
+#     plt.title("Input Image + Order polynomials")
+#     plt.xlabel("x [pixel]")
+#     plt.ylabel("y [pixel]")
+#     plt.ylim([0, im.shape[0]])
+#
+#     if orders is not None:
+#         for i, order in enumerate(orders):
+#             x = np.arange(*order_range[i], 1)
+#             y = np.polyval(order, x)
+#             plt.plot(x, y)
+#
+#     plt.subplot(122)
+#
+#     plt.imshow(cluster_img, cmap=plt.get_cmap("tab20"), origin="upper")
+#     plt.title("Detected Clusters + Order Polynomials")
+#     plt.xlabel("x [pixel]")
+#     plt.ylabel("y [pixel]")
+#
+#     if orders is not None:
+#         for i, order in enumerate(orders):
+#             x = np.arange(*order_range[i], 1)
+#             y = np.polyval(order, x)
+#             plt.plot(x, y,"k",alpha=0.8)
+#
+#     plt.ylim([0, im.shape[0]])
+#     if title is not None:
+#         plt.suptitle(title)
+#
+#     plt.tight_layout()
+#     plt.show()
 
 def plot_orders(im, x, y, clusters, orders, order_range, title=None):
     """Plot orders and image"""
+    from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 
     cluster_img = np.zeros(im.shape, dtype=im.dtype)
     for c in clusters:
         cluster_img[x[c], y[c]] = c + 1
     cluster_img = np.ma.masked_array(cluster_img, mask=cluster_img == 0)
 
-    plt.subplot(121)
-    bot, top = np.percentile(im, (1, 99))
-    plt.imshow(im, origin="lower", vmin=bot, vmax=top)
-    plt.title("Input Image + Order polynomials")
-    plt.xlabel("x [pixel]")
-    plt.ylabel("y [pixel]")
-    plt.ylim([0, im.shape[0]])
+    fig = plt.figure(figsize=(18.5,10))
+    fontsize = 28
+    plt.imshow(cluster_img, cmap=plt.get_cmap("tab20"), origin="lower",aspect="auto")
+    plt.xlabel("x [pixel]",fontsize=fontsize)
+    plt.ylabel("y [pixel]",fontsize=fontsize)
 
     if orders is not None:
         for i, order in enumerate(orders):
             x = np.arange(*order_range[i], 1)
             y = np.polyval(order, x)
-            plt.plot(x, y)
+            plt.plot(x, y,"k",alpha=0.8)
 
-    plt.subplot(122)
-    plt.imshow(cluster_img, cmap=plt.get_cmap("tab20"), origin="upper")
-    plt.title("Detected Clusters + Order Polynomials")
-    plt.xlabel("x [pixel]")
-    plt.ylabel("y [pixel]")
+    plt.ylim(400, 1619)
+    plt.xlim(-406, 2490)
+    plt.tick_params(axis="both", direction="in", length=7, labelsize=fontsize)
+    plt.tight_layout()
 
-    if orders is not None:
+    ax = plt.gca()
+    delx = 300
+    x_pairs = [[190, 190+delx],[50, 50+delx], [2028-delx,2028],[1817-delx,1817]]
+    y_pairs = [[650,810],[1200, 1360],[1200,1360],[650,810]]
+    locs = ["lower left","upper left","upper right","lower right"]
+    locs_connect = [[2,4],[1,3],[2,4],[1,3]]
+    for i in range(len(x_pairs)):
+        x1,x2 = x_pairs[i]
+        y1,y2 = y_pairs[i]
+        loc1,loc2 = locs_connect[i]
+        ###################################################################
+        # create inset axes
+        axins = inset_axes(ax, width="20%", height="20%", loc=locs[i])
+
+        axins.set_xlim(x1, x2)
+        axins.set_ylim(y1, y2)
+
+        axins.imshow(cluster_img, cmap=plt.get_cmap("tab20"), origin="lower", aspect="auto")
+
         for i, order in enumerate(orders):
-            x = np.arange(*order_range[i], 1)
-            y = np.polyval(order, x)
-            plt.plot(x, y)
+            xx = np.arange(*order_range[i], 1)
+            yy = np.polyval(order, xx)
+            axins.plot(xx, yy, "k")
 
-    plt.ylim([0, im.shape[0]])
-    if title is not None:
-        plt.suptitle(title)
+        # ax.indicate_inset_zoom(axins, edgecolor="black")
+        plt.tick_params(axis="both", direction="in", length=7)
+        axins.set_xticklabels([])
+        axins.set_yticklabels([])
+        mark_inset(ax, axins, loc1=loc1, loc2=loc2, fc="none", ec="black")
+    ###################################################################
+
     plt.show()
+    fig.savefig("/home/sborthakur/Documents/PhD_Tartu1/pyreduce_learning/Plots/orders_tracing-plot_v1.pdf",format="pdf",dpi=300)
 
 
 def plot_order(i, j, x, y, img, deg, title=""):
@@ -575,19 +637,26 @@ def mark_orders(
                 # plt.show()
 
     if plot:  # pragma: no cover
+        fontsize=12
+        fig = plt.figure(figsize=(15,10))
         title = "Identified clusters"
         if plot_title is not None:
             title = f"{plot_title}\n{title}"
-        plt.title(title)
-        plt.xlabel("x [pixel]")
-        plt.ylabel("y [pixel]")
+        plt.title(title,fontsize=fontsize)
+        plt.title(title,fontsize=fontsize)
+        plt.xlabel("x [pixel]",fontsize=fontsize)
+        plt.ylabel("y [pixel]",fontsize=fontsize)
         clusters = np.ma.zeros(im.shape, dtype=int)
         for i in x.keys():
             clusters[x[i], y[i]] = i + 1
         clusters[clusters == 0] = np.ma.masked
 
         plt.imshow(clusters, origin="lower", cmap="prism")
+        plt.tick_params(axis="both",direction='in',length=7,labelsize=fontsize)
+        # plt.ylim(400,1400)
+        plt.tight_layout()
         plt.show()
+        # fig.savefig("../Plots/orders_tracing-plot.pdf",format="pdf",dpi=300)
 
     # Merge clusters, if there are even any possible mergers left
     x, y, n = merge_clusters(

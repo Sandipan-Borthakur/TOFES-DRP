@@ -27,6 +27,8 @@ from os.path import dirname, join
 
 import joblib
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("qt5agg")
 import numpy as np
 from astropy.io import fits
 from genericpath import exists
@@ -1689,6 +1691,7 @@ class ScienceExtraction(CalibrationStep, ExtractionStep):
             # Calibrate the input image
             im, head = self.calibrate([fname], mask, bias, norm_flat,combine_type='mean')
             # Optimally extract science spectrum
+
             spec, sigma, slitfu, cr = self.extract(im, head, orders, curvature, scatter=scatter)
 
             # make slitfus from swaths into one

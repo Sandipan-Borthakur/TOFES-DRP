@@ -253,7 +253,7 @@ class Swath:
 
 def fix_parameters(xwd, cr, orders, nrow, ncol, nord, ignore_column_range=False):
     """Fix extraction width and column range, so that all pixels used are within the image.
-    I.e. the column range is cut so that the everything is within the image
+    I.e. the column range is cut so that everything is within the image
 
     Parameters
     ----------
@@ -754,6 +754,7 @@ def extract_spectrum(
                     out=norm_img[ihalf],
                 )
                 norm_model[ihalf] = swath.model[ihalf]
+
 
             if plot >= 2 and not np.all(np.isnan(swath_img)):  # pragma: no cover
                 if progress is None:

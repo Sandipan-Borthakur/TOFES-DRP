@@ -56,21 +56,43 @@ class AlignmentPlot:
 
         self.make_ref_image()
 
-    def make_ref_image(self):
+    def make_ref_image(self,white_bkg = False):
         """create and show the reference plot, with the two spectra"""
-        ref_image = np.zeros((self.nord * 2, self.ncol, 3))
+        if white_bkg:
+            ref_image = np.zeros((self.nord * 2, self.ncol, 3)) + 1
+        else:
+            ref_image = np.zeros((self.nord * 2, self.ncol, 3))
+
         for iord in range(self.nord):
-            ref_image[iord * 2, :, self.RED] = 10 * np.ma.filled(self.obs[iord], 0)
+            value = 10 * np.ma.filled(self.obs[iord], 0)
+
+            if white_bkg:
+                ref_image[iord * 2, :, self.RED]   = 1
+                ref_image[iord * 2, :, self.GREEN] = 1 - value
+                ref_image[iord * 2, :, self.BLUE]  = 1 - value
+
+            else:
+                ref_image[iord * 2, :, self.RED]   = value
+
             if 0 <= iord + self.offset[0] < self.nord:
                 for line in self.lines[self.lines["order"] == iord]:
                     first = int(np.clip(line["xfirst"] + self.offset[1], 0, self.ncol))
                     last = int(np.clip(line["xlast"] + self.offset[1], 0, self.ncol))
                     order = (iord + self.offset[0]) * 2 + 1
-                    ref_image[order, first:last, self.GREEN] = (
+
+                    value = (
                         10
                         * line["height"]
                         * signal.windows.gaussian(last - first, line["width"])
                     )
+
+                    if white_bkg:
+                        ref_image[order, first:last, self.RED]   = 1 - value
+                        ref_image[order, first:last, self.GREEN] = 1 - value
+                        ref_image[order, first:last, self.BLUE]  = 1
+                    else:
+                        ref_image[order, first:last, self.GREEN] = value
+
         ref_image = np.clip(ref_image, 0, 1)
         ref_image[ref_image < 0.1] = 0
 
@@ -84,9 +106,12 @@ class AlignmentPlot:
         if self.plot_title is not None:
             title = f"{self.plot_title}\n{title}"
         self.im.figure.suptitle(title)
-        self.im.axes.set_xlabel("x [pixel]")
-        self.im.axes.set_ylabel("Order")
-
+        fontsize = 30
+        self.im.axes.set_xlabel("x [pixel]",fontsize=fontsize)
+        self.im.axes.set_ylabel("Order",fontsize=fontsize)
+        self.im.axes.tick_params(axis="both", direction="in",labelsize=fontsize)
+        plt.tight_layout()
+        plt.savefig("../Plots/wavecal.pdf",format="pdf",dpi=300)
         self.im.figure.canvas.draw()
 
     def connect(self):
@@ -439,7 +464,7 @@ class WavelengthCalibration:
         offset : tuple(int, int)
             offset in order and column to be applied to each line in the linelist
         """
-        _, ax = plt.subplots()
+        _, ax = plt.subplots(figsize=(15,10))
         ap = AlignmentPlot(ax, obs, lines, plot_title=self.plot_title)
         ap.connect()
         plt.show()
@@ -538,7 +563,9 @@ class WavelengthCalibration:
                 for i in range(max(offset[0], 0), min(len(obs), len(img))):
                     correlation = signal.correlate(obs[i], img[i], mode="same")
                     width = int(self.ncol * self.shift_window) // 2
-                    low, high = self.ncol // 2 - width, self.ncol // 2 + width
+                    # low, high = self.ncol // 2 - width, self.ncol // 2 + width
+                    low = max(0, self.ncol // 2 - width)
+                    high = min(self.ncol, self.ncol // 2 + width)
                     offset_x = np.argmax(correlation[low:high]) + low
                     offset_x = int(offset_x - self.ncol / 2 + 1)
 

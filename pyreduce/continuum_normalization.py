@@ -48,7 +48,6 @@ def splice_orders(spec, wave, cont, sigm, scaling=True, plot=False, plot_title=N
     spec, wave, cont, sigm : array[nord, ncol]
         spliced spectrum
     """
-
     nord, _ = spec.shape  # Number of sp. orders, Order length in pixels
 
     if cont is None:
@@ -210,7 +209,7 @@ def continuum_normalize(
     wave,
     cont,
     sigm,
-    iterations=6,
+    iterations=10,
     smooth_initial=1e5,
     smooth_final=5e7,
     scale_vert=1,
@@ -257,24 +256,12 @@ def continuum_normalize(
     par2 = 1e-4
     par4 = 0.01 * (1 - np.clip(2, None, 1 / np.sqrt(np.ma.median(spec))))
 
+
     b = np.clip(cont, 1, None)
     mask = ~np.ma.getmaskarray(b)
     for i in range(nord):
         b[i, mask[i]] = util.middle(b[i, mask[i]], 1)
     cont = b
-
-    # sb: Testing to use median filtering with interpolation to remove noise
-    b = np.clip(spec,0,None)
-    mask = ~np.ma.getmaskarray(b)
-    for i in range(nord):
-        b[i, mask[i]] = util.middle(b[i, mask[i]], 1)
-
-    for i in range(spec.shape[0]):
-        plt.plot(wave[i],spec[i],'k')
-        ind = np.where(np.abs(spec[i]/b[i]-1)<=0.2)[0]
-        spec[i] = np.interp(wave[i],wave[i][ind],spec[i][ind])
-        plt.plot(wave[i],spec[i])
-    plt.show()
 
     # Create new equispaced wavelength grid
     tmp = wave.compressed()
@@ -290,7 +277,7 @@ def continuum_normalize(
 
     # Get initial weights for each point
     weight = util.middle(sB, 0.5, x=wsort - wmin)
-    weight = weight / util.middle(weight, 3 * smooth_initial) + np.concatenate(
+    weight = par2*weight / util.middle(weight, 3 * smooth_initial) + par4*np.concatenate(
         ([0], 2 * weight[1:-1] - weight[0:-2] - weight[2:], [0])
     )
     weight = np.clip(weight, 0, None)
